@@ -81,7 +81,7 @@ class TestDependencyHandler:
                         if not TestDependencyHandler.check_skip_marker(nodeid, nodeid_to_item_map):
                             nodeid_to_item_map[nodeid].add_marker('skip')
                             vars(nodeid_to_item_map[nodeid].get_closest_marker('skip'))['kwargs'] = {
-                                'reason': 'depends on skipped test: {}'.format(current_nodeid.split('::')[1])
+                                'reason': f'depends on skipped test: {current_nodeid.split('::')[1]}'
                             }
                         current_nodeid = nodeid
 
