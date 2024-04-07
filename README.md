@@ -35,3 +35,8 @@ def test_first(request):
     print("first")
     assert request.session.items[0].name == 'test_first'
 ```
+
+Limitations and known issues:
+-----------------------------------------------------
+* The plugin logic makes tests run one after the other in a serial way, as a result, x-dist isn't supported (currently).
+* All the tests without depednecy (both dependent on and depends on) will run first, afterwards all tests with connections will run (e.g. the list of items will be as described)
