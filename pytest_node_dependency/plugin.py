@@ -7,6 +7,9 @@ import pytest
 
 class TestDependencyHandler:
 
+    with_deps = []
+    without_deps = []
+
     @staticmethod
     def clean_nodeid(nodeid):
         """Clean node ids for class-based tests."""
@@ -43,6 +46,32 @@ class TestDependencyHandler:
         return dependency
 
     @staticmethod
+    def with_deps_parser(item, dag, nodeid_to_item_map):
+        dependency_nodeid = list(dag.pred[TestDependencyHandler.clean_nodeid(item.nodeid)].keys())[0]
+
+        if TestDependencyHandler.check_skip_marker(dependency_nodeid, nodeid_to_item_map):
+            current_nodeid = dependency_nodeid
+            while dag.succ[current_nodeid]:
+                nodeid = list(dag.succ[current_nodeid].keys())[0]
+                if not TestDependencyHandler.check_skip_marker(nodeid, nodeid_to_item_map):
+                    nodeid_to_item_map[nodeid].add_marker('skip')
+                    vars(nodeid_to_item_map[nodeid].get_closest_marker('skip'))['kwargs'] = {
+                        'reason': f'depends on skipped test: {current_nodeid.split("::")[1]}'
+                    }
+                current_nodeid = nodeid
+
+        depends_on = [nodeid_to_item_map[dependency_nodeid], item]
+        if nodeid_to_item_map[dependency_nodeid] in TestDependencyHandler.without_deps:
+            TestDependencyHandler.without_deps.remove(nodeid_to_item_map[dependency_nodeid])
+
+        TestDependencyHandler.with_deps.extend(dep for dep in depends_on if str(dep) not in str(TestDependencyHandler.with_deps))
+
+    @staticmethod
+    def without_deps_parser(item):
+        if item not in TestDependencyHandler.with_deps:
+            TestDependencyHandler.without_deps.append(item)
+
+    @staticmethod
     def reorder_tests(items):
         """
         Reorder the execution of tests based on the dependency marks.
@@ -67,28 +96,13 @@ class TestDependencyHandler:
                     dependency_nodeid = TestDependencyHandler.get_dependency_nodeid(item, dependency)
                     dag.add_edge(dependency_nodeid, TestDependencyHandler.clean_nodeid(item.nodeid))
 
-        without_deps = [item for item in items if not dag.pred[TestDependencyHandler.clean_nodeid(item.nodeid)]]
-        with_deps = []
-
         for item in items:
-            if dag.pred[TestDependencyHandler.clean_nodeid(item.nodeid)]:
-                dependency_nodeid = list(dag.pred[TestDependencyHandler.clean_nodeid(item.nodeid)].keys())[0]
+            if not dag.pred[TestDependencyHandler.clean_nodeid(item.nodeid)]:
+                TestDependencyHandler.without_deps_parser(item)
+            else:
+                TestDependencyHandler.with_deps_parser(item, dag, nodeid_to_item_map)
 
-                if TestDependencyHandler.check_skip_marker(dependency_nodeid, nodeid_to_item_map):
-                    current_nodeid = dependency_nodeid
-                    while dag.succ[current_nodeid]:
-                        nodeid = list(dag.succ[current_nodeid].keys())[0]
-                        if not TestDependencyHandler.check_skip_marker(nodeid, nodeid_to_item_map):
-                            nodeid_to_item_map[nodeid].add_marker('skip')
-                            vars(nodeid_to_item_map[nodeid].get_closest_marker('skip'))['kwargs'] = {
-                                'reason': f'depends on skipped test: {current_nodeid.split('::')[1]}'
-                            }
-                        current_nodeid = nodeid
-
-                depends_on = [nodeid_to_item_map[dependency_nodeid], item]
-                with_deps.extend(dep for dep in depends_on if str(dep) not in str(with_deps))
-
-        return without_deps + with_deps
+        return TestDependencyHandler.without_deps + TestDependencyHandler.with_deps
 
     @staticmethod
     def handle_failed_dependency(item):
@@ -141,13 +155,16 @@ class TestDependencyHandler:
             item.config.cache.set('failed_test_list', test_list)
 
 
+@pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(items):
-    TestDependencyHandler.reorder_tests(items)
+    items[:] = TestDependencyHandler.reorder_tests(items)
 
 
+@pytest.hookimpl(trylast=True)
 def pytest_runtest_setup(item):
     TestDependencyHandler.handle_failed_dependency(item)
 
 
+@pytest.hookimpl(trylast=True)
 def pytest_runtest_teardown(item):
     TestDependencyHandler.handle_failed_test(item)
