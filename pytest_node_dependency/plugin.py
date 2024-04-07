@@ -155,6 +155,12 @@ class TestDependencyHandler:
             item.config.cache.set('failed_test_list', test_list)
 
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "depends: This marker aims to reshuffle test execution. @pytest.mark.dedpends(on=['a_module.py::a_test'])"
+    )
+
+
 @pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(items):
     items[:] = TestDependencyHandler.reorder_tests(items)
