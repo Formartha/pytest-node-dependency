@@ -96,7 +96,6 @@ class TestDependencyHandler:
                     dependency_nodeid = TestDependencyHandler.get_dependency_nodeid(item, dependency)
                     dag.add_edge(dependency_nodeid, TestDependencyHandler.clean_nodeid(item.nodeid))
 
-        for item in items:
             if not dag.pred[TestDependencyHandler.clean_nodeid(item.nodeid)]:
                 TestDependencyHandler.without_deps_parser(item)
             else:
