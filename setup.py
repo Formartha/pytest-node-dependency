@@ -1,6 +1,6 @@
 from setuptools import setup
 
-VERSION_NUMBER = "1.1.0"
+VERSION_NUMBER = "1.2.0"
 
 # Load the README file as the long description
 with open("README.md", "r", encoding="utf-8") as fh:
