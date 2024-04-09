@@ -3,21 +3,21 @@ import platform
 import networkx as nx
 import pytest
 
+NODE_DEPENDENCY_ITEMS_CACHE = 'node-dependency-items'
+
 try:
     from xdist.scheduler.loadscope import LoadScopeScheduling
+
+    class Scheduler(LoadScopeScheduling):
+        def _split_scope(self, nodeid):
+            return TestDependencyHandler.xdist_get_group(self.config, nodeid)
+
 except ImportError:
     pass
 
-NODE_DEPENDENCY_ITEMS_CACHE = 'node-dependency-items'
-
-
-class MyScheduler(LoadScopeScheduling):
-    def _split_scope(self, nodeid):
-        return TestDependencyHandler.xdist_get_group(self.config, nodeid)
-
 
 def pytest_xdist_make_scheduler(config, log):
-    return MyScheduler(config, log)
+    return Scheduler(config, log)
 
 
 class TestDependencyHandler:
