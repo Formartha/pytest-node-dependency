@@ -1,6 +1,8 @@
 ------
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/license/mit)
+![PyPI](https://img.shields.io/pypi/v/PACKAGE?label=pytest-node-dependency)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/pytest-node-dependency)
 
 What?
 ------
