@@ -1,11 +1,12 @@
 import os
 import platform
-
 import networkx as nx
 import pytest
 
-from xdist.scheduler.loadscope import LoadScopeScheduling
-
+try:
+    from xdist.scheduler.loadscope import LoadScopeScheduling
+except ImportError:
+    pass
 
 NODE_DEPENDENCY_ITEMS_CACHE = 'node-dependency-items'
 
