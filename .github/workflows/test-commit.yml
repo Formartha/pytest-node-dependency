@@ -15,10 +15,16 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.9
-    - name: Install dependencies
+    - name: Install dependencies no-xdist
       run: |
         python -m pip install --upgrade pip
         pip install networkx pytest
-    - name: Run tests
+    - name: Run tests without x-dist
       run: |
         pytest tests/
+    - name: Install dependencies for no-xdist
+      run: |
+        pip install pytest-xdist
+    - name: Run tests with x-dist
+      run: |
+        pytest -n auto tests/
