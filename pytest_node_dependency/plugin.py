@@ -8,16 +8,15 @@ NODE_DEPENDENCY_ITEMS_CACHE = 'node-dependency-items'
 try:
     from xdist.scheduler.loadscope import LoadScopeScheduling
 
+    def pytest_xdist_make_scheduler(config, log):
+        return Scheduler(config, log)
+
     class Scheduler(LoadScopeScheduling):
         def _split_scope(self, nodeid):
             return TestDependencyHandler.xdist_get_group(self.config, nodeid)
 
 except ImportError:
     pass
-
-
-def pytest_xdist_make_scheduler(config, log):
-    return Scheduler(config, log)
 
 
 class TestDependencyHandler:
