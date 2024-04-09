@@ -8,6 +8,8 @@ What?
 ------
 pytest-node-dependency is a pytest plugin that allows you to define dependencies between tests and reorder their execution based on those dependencies. This plugin ensures that tests with dependencies run after their required prerequisites have completed successfully.
 
+A unique feature of the plugin is that if you set a test to depend on another one, the plugin will check if the test being depended upon failed. If that's the case, it will mark the current test as 'expected to fail' (xfail).
+
 How to install?
 ----------
 ```
@@ -73,3 +75,4 @@ Limitations and known issues:
 -----------------------------------------------------
 * All the tests without dependency (both dependent-on) will run first, then, all tests with connections will run
 (e.g. the list of items will be as described)
+* Currently, automated xfail is enabled, it should be configurable.
