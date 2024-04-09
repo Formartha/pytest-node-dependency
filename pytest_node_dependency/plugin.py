@@ -4,6 +4,20 @@ import platform
 import networkx as nx
 import pytest
 
+from xdist.scheduler.loadscope import LoadScopeScheduling
+
+
+NODE_DEPENDENCY_ITEMS_CACHE = 'node-dependency-items'
+
+
+class MyScheduler(LoadScopeScheduling):
+    def _split_scope(self, nodeid):
+        return TestDependencyHandler.xdist_get_group(self.config, nodeid)
+
+
+def pytest_xdist_make_scheduler(config, log):
+    return MyScheduler(config, log)
+
 
 class TestDependencyHandler:
 
@@ -65,11 +79,30 @@ class TestDependencyHandler:
             TestDependencyHandler.without_deps.remove(nodeid_to_item_map[dependency_nodeid])
 
         TestDependencyHandler.with_deps.extend(dep for dep in depends_on if str(dep) not in str(TestDependencyHandler.with_deps))
+        TestDependencyHandler.xdist_register_group(item)
 
     @staticmethod
     def without_deps_parser(item):
         if item not in TestDependencyHandler.with_deps:
             TestDependencyHandler.without_deps.append(item)
+            TestDependencyHandler.xdist_register_group(item)
+
+    @staticmethod
+    def xdist_register_group(item):
+        l = item.config.cache.get(NODE_DEPENDENCY_ITEMS_CACHE, dict())
+        try:
+            l[item.name] = item.get_closest_marker("depends").kwargs.get("xdist_group")
+            item.config.cache.set(NODE_DEPENDENCY_ITEMS_CACHE, l)
+        except:
+            pass
+
+    @staticmethod
+    def xdist_get_group(config, nodeid):
+        group = config.cache.get(NODE_DEPENDENCY_ITEMS_CACHE, {}).get(nodeid.split("::")[1])
+        if group:
+            return config.cache.get(NODE_DEPENDENCY_ITEMS_CACHE, {}).get(nodeid.split("::")[1])
+        else:
+            return nodeid
 
     @staticmethod
     def reorder_tests(items):
@@ -92,9 +125,10 @@ class TestDependencyHandler:
 
             marker = item.get_closest_marker('depends')
             if marker is not None:
-                for dependency in marker.kwargs['on']:
-                    dependency_nodeid = TestDependencyHandler.get_dependency_nodeid(item, dependency)
-                    dag.add_edge(dependency_nodeid, TestDependencyHandler.clean_nodeid(item.nodeid))
+                if marker.kwargs.get('on'):
+                    for dependency in marker.kwargs['on']:
+                        dependency_nodeid = TestDependencyHandler.get_dependency_nodeid(item, dependency)
+                        dag.add_edge(dependency_nodeid, TestDependencyHandler.clean_nodeid(item.nodeid))
 
             if not dag.pred[TestDependencyHandler.clean_nodeid(item.nodeid)]:
                 TestDependencyHandler.without_deps_parser(item)
@@ -155,6 +189,7 @@ class TestDependencyHandler:
 
 
 def pytest_configure(config):
+    config.cache.set(NODE_DEPENDENCY_ITEMS_CACHE, dict())
     config.addinivalue_line(
         "markers", "depends: This marker aims to reshuffle test execution. @pytest.mark.dedpends(on=['a_module.py::a_test'])"
     )
