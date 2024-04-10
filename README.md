@@ -1,7 +1,7 @@
 ------
 
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/license/mit)
-![PyPI](https://img.shields.io/pypi/v/pytest-node-dependency)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Formartha/pytest-node-dependency/blob/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/pytest-node-dependency)](https://pypi.org/project/pytest-node-dependency)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/pytest-node-dependency)
 
 What?
