@@ -2,6 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Formartha/pytest-node-dependency/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/pytest-node-dependency)](https://pypi.org/project/pytest-node-dependency)
+[![Tests](https://img.shields.io/github/actions/workflow/status/Formartha/pytest-node-dependency/test-commit.yml?branch=main&label=tests)](https://github.com/Formartha/pytest-node-dependency/actions/workflows/test-commit.yml)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/pytest-node-dependency)
 
 What?
